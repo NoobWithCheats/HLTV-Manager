@@ -58,7 +58,7 @@ func (h *HLTV) LoadDemosFromFolder() error {
 			return nil
 		}
 
-		if strings.HasSuffix(info.Name(), ".dem") {
+		if strings.HasSuffix(info.Name(), ".zip") {
 			id++
 			demo, err := parseDemoFilename(info.Name())
 			if err != nil {
@@ -124,5 +124,5 @@ func (h *HLTV) GetDemoFileName(demoID int) (string, error) {
 	datePart := strings.ReplaceAll(demo.Date, ".", "")[2:]
 	timePart := strings.ReplaceAll(demo.Time, ":", "")
 
-	return fmt.Sprintf("%s-%s-%s.dem", h.Settings.DemoName, datePart+timePart, demo.Map), nil
+	return fmt.Sprintf("%s-%s-%s.zip", h.Settings.DemoName, datePart+timePart, demo.Map), nil
 }

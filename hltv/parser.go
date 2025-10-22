@@ -2,7 +2,9 @@ package hltv
 
 import (
 	log "HLTV-Manager/logger"
+	"archive/zip"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -30,6 +32,7 @@ var patterns = map[string]*regexp.Regexp{
 	"rejected":     regexp.MustCompile(`^Connection rejected: No password set.*$`),
 	"disconnected": regexp.MustCompile(`^Disconnected.*$`),
 	"server_state": regexp.MustCompile(`^Server::SetState: not valid m_ServerState \(\d+ -> \d+\).$`),
+	"completed":    regexp.MustCompile(`^Completed demo [a-zA-Z0-9]+-\d+-[a-zA-Z0-9_]+\.dem.$`),
 }
 
 func (hltv *HLTV) TerminalControl() {
@@ -69,6 +72,29 @@ func (hltv *HLTV) ParseHltvOutLines(input string) {
 
 		if hltv.Settings.DebugTerminalLog {
 			log.InfoLogger.Printf("(HLTV %d) %s", hltv.ID, line)
+		}
+
+		// INFO: Нужно ли это запихивать куда-то?
+		if patterns["completed"].MatchString(line) {
+			re := regexp.MustCompile(`^[^-]+ +([a-zA-Z0-9]+-\d{10}-.+)\.dem.$`)
+			matches := re.FindStringSubmatch(line)
+
+			if matches == nil {
+				fmt.Errorf("incorrect file name format")
+			}
+
+			file := hltv.Settings.DemoDir + "/" + matches[0]
+			archive, err := os.Create(file + ".zip")
+
+			if err == nil {
+				fmt.Errorf("inncorrect zip file")
+			}
+
+			defer archive.Close()
+
+			zipWriter := zip.NewWriter(archive)
+			zipWriter.Create(file + ".dem")
+			zipWriter.Close()
 		}
 
 		switch hltv.Parser.Status {
