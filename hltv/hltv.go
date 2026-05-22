@@ -76,6 +76,7 @@ func (hltv *HLTV) Start() error {
 		},
 		DemoPath: hltv.Settings.DemoDir,
 		CfgPath:  cfgPath,
+		Port:     hltv.Settings.Port,
 		Hltv:     hltvData,
 	})
 	if err != nil {

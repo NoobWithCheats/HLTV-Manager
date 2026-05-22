@@ -13,6 +13,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 )
 
 type HltvContainerConfig struct {
@@ -20,6 +21,7 @@ type HltvContainerConfig struct {
 	DemoPath string
 	CfgPath  string
 	Mounts   []mount.Mount
+	Port     string
 	Hltv     Hltv
 }
 
@@ -72,6 +74,13 @@ func (docker *Docker) CreateAndStart(config HltvContainerConfig) error {
 
 	path := getGamePath(gameID)
 
+	// Формируем проброс порта (UDP!)
+	portBindings := nat.PortMap{
+		nat.Port(config.Port + "/udp"): []nat.PortBinding{
+			{HostPort: config.Port},
+		},
+	}
+
 	resp, err := docker.client.ContainerCreate(ctx, &container.Config{
 		Image:        Config.HltvDocker(),
 		Cmd:          config.Cmd,
@@ -83,6 +92,9 @@ func (docker *Docker) CreateAndStart(config HltvContainerConfig) error {
 		Env: []string{
 			"TZ=" + os.Getenv("TZ"), // прокидываем из hltv-manager
 		},
+		ExposedPorts: nat.PortSet{ 
+        nat.Port(config.Port + "/udp"): struct{}{},
+    	},
 	}, &container.HostConfig{
 		Mounts: []mount.Mount{
 			{
@@ -108,6 +120,7 @@ func (docker *Docker) CreateAndStart(config HltvContainerConfig) error {
 				ReadOnly: true,
 			},
 		},
+		PortBindings: portBindings,
 		AutoRemove: true,
 	}, nil, nil, "hltv_"+strconv.Itoa(config.Hltv.ID))
 	if err != nil {
