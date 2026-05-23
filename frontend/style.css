@@ -1,0 +1,164 @@
+:root {
+    --bg: #ffffff;
+    --text: #333333;
+    --table-bg: #ffffff;
+    --table-border: #dddddd;
+    --btn-default-bg: #f5f5f5;
+    --btn-default-text: #333;
+    --navbar-bg: #f8f8f8;
+    --navbar-text: #555;
+    --terminal-bg: #000000;
+    --terminal-text: #00ff00;
+    --form-bg: #ffffff;
+    --form-border: #cccccc;
+    --form-text: #333333;
+}
+
+[data-theme="dark"] {
+    --bg: #1e1e1e;
+    --text: #e0e0e0;
+    --table-bg: #2a2a2a;
+    --table-border: #444444;
+    --btn-default-bg: #3a3a3a;
+    --btn-default-text: #e0e0e0;
+    --navbar-bg: #2a2a2a;
+    --navbar-text: #cccccc;
+    --terminal-bg: #000000;
+    --terminal-text: #00ff00;
+    --form-bg: #2a2a2a;
+    --form-border: #555555;
+    --form-text: #e0e0e0;
+}
+
+/* Базовые стили */
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    margin-top: 70px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.navbar {
+    border-radius: 0;
+    border: none;
+    background-color: var(--navbar-bg);
+}
+.navbar .navbar-brand,
+.navbar .nav > li > a {
+    color: var(--navbar-text) !important;
+}
+
+/* Таблицы */
+.table {
+    background-color: var(--table-bg);
+    border: 1px solid var(--table-border);
+}
+.table > thead > tr > th,
+.table > tbody > tr > td {
+    border-color: var(--table-border);
+    color: var(--text);
+}
+
+/* Тёмная тема: полосатые строки */
+[data-theme="dark"] .table-striped > tbody > tr:nth-child(odd) > td,
+[data-theme="dark"] .table-striped > tbody > tr:nth-child(odd) > th {
+    background-color: #2e2e2e !important;
+}
+
+/* Тёмная тема: наведение */
+[data-theme="dark"] .table-hover > tbody > tr:hover > td,
+[data-theme="dark"] .table-hover > tbody > tr:hover > th {
+    background-color: #3a3a3a !important;
+}
+
+/* Формы */
+.form-control {
+    background-color: var(--form-bg);
+    color: var(--form-text);
+    border-color: var(--form-border);
+}
+.form-control:focus {
+    border-color: #66afe9;
+    box-shadow: none;
+}
+
+/* Кнопки */
+.btn-default {
+    background-color: var(--btn-default-bg);
+    color: var(--btn-default-text);
+    border-color: var(--table-border);
+}
+[data-theme="dark"] .btn-info {
+    background-color: #2a6e9e;
+    border-color: #1d4f73;
+}
+[data-theme="dark"] .btn-warning {
+    background-color: #aa7a2e;
+    border-color: #7a561d;
+}
+[data-theme="dark"] .btn-success {
+    background-color: #3e8e41;
+    border-color: #2d682f;
+}
+[data-theme="dark"] .btn-danger {
+    background-color: #a33e3e;
+    border-color: #752e2e;
+}
+
+/* Терминал */
+.terminal-window {
+    background-color: var(--terminal-bg);
+    color: var(--terminal-text);
+    font-family: monospace;
+    padding: 15px;
+    height: 65vh;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    border: 1px solid var(--table-border);
+    margin-top: 10px;
+}
+
+/* Утилитарные */
+.mt-20 { margin-top: 20px; }
+.mb-20 { margin-bottom: 20px; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+
+[data-theme="dark"] {
+    --bg: #1e1e1e;
+    --text: #e0e0e0;
+    --table-bg: #2a2a2a;
+    --table-border: #444444;
+    --btn-default-bg: #3a3a3a;
+    --btn-default-text: #e0e0e0;
+    --navbar-bg: #2a2a2a;
+    --navbar-text: #cccccc;
+    --terminal-bg: #000000;
+    --terminal-text: #00ff00;
+    --form-bg: #2a2a2a;
+    --form-border: #555555;
+    --form-text: #e0e0e0;
+}
+
+/* Тёмная тема: строки с классом .info */
+[data-theme="dark"] .table > thead > tr > td.info,
+[data-theme="dark"] .table > tbody > tr > td.info,
+[data-theme="dark"] .table > tfoot > tr > td.info,
+[data-theme="dark"] .table > thead > tr > th.info,
+[data-theme="dark"] .table > tbody > tr > th.info,
+[data-theme="dark"] .table > tfoot > tr > th.info,
+[data-theme="dark"] .table > thead > tr.info > td,
+[data-theme="dark"] .table > tbody > tr.info > td,
+[data-theme="dark"] .table > tfoot > tr.info > td,
+[data-theme="dark"] .table > thead > tr.info > th,
+[data-theme="dark"] .table > tbody > tr.info > th,
+[data-theme="dark"] .table > tfoot > tr.info > th {
+    background-color: #2a6e9e !important;
+}
+
+/* Тёмная тема: наведение в навигации — менее яркое */
+[data-theme="dark"] .nav > li > a:hover,
+[data-theme="dark"] .nav > li > a:focus {
+    background-color: #3a3a3a;
+    color: #ffffff;
+}

@@ -3,14 +3,16 @@
 <html lang="en">
 {{ template "head" }}
 <body>
+{{ template "navbar" }}
 <div class="container">
-    <h1 class="text-center">HLTV Servers</h1>
-    <table class="table table-bordered table-striped table-hover">
+    <h1 class="text-center mb-20">HLTV Servers</h1>
+    <table class="table table-bordered table-striped table-hover mt-20">
         <thead>
             <tr class="info text-center">
                 <th class="text-center">ID</th>
                 <th class="text-center">HLTV Name</th>
                 <th class="text-center">Connect Address</th>
+                <th class="text-center">Status</th>
                 <th class="text-center">Demos</th>
             </tr>
         </thead>
@@ -20,11 +22,19 @@
                 <td>{{.ID}}</td>
                 <td>{{.Settings.Name}}</td>
                 <td>{{.Settings.ShowIP}}</td>
+                <td>
+                    {{if .IsRunning}}
+                        🔴 LIVE
+                        <br><small><a href="steam://connect/{{.Settings.ShowIP}}">Смотреть в HLTV</a></small>
+                    {{else}}
+                        ⚫ Offline
+                    {{end}}
+                </td>
                 <td><a href="/demos/{{.ID}}" class="btn btn-primary btn-sm">View Demos</a></td>
             </tr>
             {{else}}
             <tr>
-                <td colspan="3" class="text-center">Нет запущенных HLTV серверов</td>
+                <td colspan="5" class="text-center">Нет запущенных HLTV серверов</td>
             </tr>
             {{end}}
         </tbody>

@@ -9,6 +9,7 @@ import (
 func (site *Site) homeHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles(
 		filepath.Join("frontend", "head.gohtml"),
+		filepath.Join("frontend", "navbar.gohtml"),
 		filepath.Join("frontend", "home.gohtml"),
 	)
 

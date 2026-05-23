@@ -1,0 +1,58 @@
+{{ define "terminal" }}
+<!DOCTYPE html>
+<html>
+{{ template "head" }}
+<body>
+{{ template "navbar" }}
+<div class="container-fluid">
+    <h3 class="text-center">Терминал HLTV {{.ID}} – {{.Settings.Name}}</h3>
+    <a href="/admin" class="btn btn-default mb-2">← Назад</a>
+
+    <div class="toolbar" style="margin:10px 0;display:flex;gap:15px;align-items:center;">
+        <label>Фон: <input type="color" id="bgColor" value="#000000" oninput="applyColors()"></label>
+        <label>Шрифт: <input type="color" id="fontColor" value="#00ff00" oninput="applyColors()"></label>
+        <label><input type="checkbox" id="autoscroll" checked> Автопрокрутка</label>
+    </div>
+
+    <div class="terminal-window" id="terminal"></div>
+    <div class="input-group" style="margin-top:10px;">
+        <input type="text" id="command" class="form-control" placeholder="Команда HLTV" autofocus>
+        <span class="input-group-btn">
+            <button class="btn btn-primary" id="send">Отправить</button>
+        </span>
+    </div>
+</div>
+<script>
+    const hltvId = {{.ID}};
+    const wsUrl = 'ws://' + location.host + '/admin/hltv/terminal/' + hltvId;
+    const ws = new WebSocket(wsUrl);
+    const terminal = document.getElementById('terminal');
+    const bgColor = document.getElementById('bgColor');
+    const fontColor = document.getElementById('fontColor');
+    const autoscroll = document.getElementById('autoscroll');
+
+    function applyColors() {
+        terminal.style.backgroundColor = bgColor.value;
+        terminal.style.color = fontColor.value;
+    }
+    applyColors();
+
+    ws.onmessage = (event) => {
+        terminal.innerHTML += event.data + '\n';
+        if (autoscroll.checked) terminal.scrollTop = terminal.scrollHeight;
+    };
+    ws.onopen = () => { terminal.innerHTML += '-- Подключено --\n'; };
+    ws.onerror = () => { terminal.innerHTML += '\n--- Ошибка соединения ---'; };
+    ws.onclose = () => { terminal.innerHTML += '\n--- Соединение закрыто ---'; };
+
+    document.getElementById('send').addEventListener('click', () => {
+        const cmd = document.getElementById('command').value;
+        if (cmd) { ws.send(cmd); document.getElementById('command').value = ''; }
+    });
+    document.getElementById('command').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') document.getElementById('send').click();
+    });
+</script>
+</body>
+</html>
+{{ end }}

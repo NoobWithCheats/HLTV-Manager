@@ -1,0 +1,53 @@
+{{ define "hltv_form" }}
+<!DOCTYPE html>
+<html>
+{{ template "head" }}
+<body>
+{{ template "navbar" }}
+<div class="container" style="max-width: 700px; margin-top: 30px;">
+    <h2>{{if .}}Редактировать{{else}}Новый{{end}} HLTV</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label>Название</label>
+            <input name="name" class="form-control" value="{{if .}}{{.Settings.Name}}{{end}}" required>
+        </div>
+        <div class="form-group">
+            <label>ShowIP (отображаемый адрес)</label>
+            <input name="showip" class="form-control" value="{{if .}}{{.Settings.ShowIP}}{{end}}" required>
+        </div>
+        <div class="form-group">
+            <label>Connect (куда подключаться)</label>
+            <input name="connect" class="form-control" value="{{if .}}{{.Settings.Connect}}{{end}}" required>
+        </div>
+        <div class="form-group">
+            <label>Порт HLTV</label>
+            <input name="port" class="form-control" value="{{if .}}{{.Settings.Port}}{{end}}" required>
+        </div>
+        <div class="form-group">
+            <label>Game ID</label>
+            <input name="gameid" class="form-control" value="{{if .}}{{.Settings.GameID}}{{else}}10{{end}}">
+        </div>
+        <div class="form-group">
+            <label>Префикс демок (одно слово)</label>
+            <input name="demoname" class="form-control" value="{{if .}}{{.Settings.DemoName}}{{end}}" required>
+        </div>
+        <div class="form-group">
+            <label>Хранить демки (дней)</label>
+            <input name="maxdemoday" class="form-control" value="{{if .}}{{.Settings.MaxDemoDay}}{{else}}3{{end}}">
+        </div>
+        <div class="form-group">
+            <label>Отладка терминала</label>
+            <input type="checkbox" name="debug" {{if .}}{{if .Settings.DebugTerminalLog}}checked{{end}}{{end}}>
+        </div>
+        <div class="form-group">
+            <label>Cvars (по одной на строку)</label>
+            <textarea name="cvars" class="form-control" rows="8">{{if .}}{{range .Settings.Cvars}}{{.}}
+{{end}}{{end}}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <a href="/admin" class="btn btn-default">Отмена</a>
+    </form>
+</div>
+</body>
+</html>
+{{ end }}

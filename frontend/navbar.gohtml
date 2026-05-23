@@ -1,0 +1,28 @@
+{{ define "navbar" }}
+<nav class="navbar navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/">HLTV-Manager</a>
+    </div>
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="/">Главная</a></li>
+      <li><a href="/admin">Админка</a></li>
+      <li>
+        <a href="#" id="theme-switch" onclick="toggleTheme()">
+          🌓 Тема
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<script>
+  const saved = localStorage.getItem('theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? '' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+</script>
+{{ end }}

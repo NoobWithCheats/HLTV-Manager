@@ -4,6 +4,8 @@ import (
 	"HLTV-Manager/docker"
 	log "HLTV-Manager/logger"
 	"fmt"
+	"time"
+	"sync"
 )
 
 type HLTV struct {
@@ -12,6 +14,12 @@ type HLTV struct {
 	Demos    []Demos
 	Docker   *docker.Docker
 	Parser   Parser
+	isRunning bool
+	quitChan  chan struct{}
+
+	logBuffer   *LogBuffer
+	subscribers map[chan string]struct{}
+	mu          sync.Mutex
 }
 
 type Settings struct {
@@ -83,9 +91,12 @@ func (hltv *HLTV) Start() error {
 		return err
 	}
 
+	hltv.quitChan = make(chan struct{})
 	go hltv.TerminalControl()
-
+	hltv.logBuffer = NewLogBuffer(200)
+	hltv.subscribers = make(map[chan string]struct{})
 	fmt.Println(hltv.Demos)
+	hltv.isRunning = true
 
 	return nil
 }
@@ -117,16 +128,28 @@ func (hltv *HLTV) Quit() error {
 	err := hltv.WriteCommand("quit")
 	if err != nil {
 		log.ErrorLogger.Printf("HLTV (ID: %d, Name: %s) Failed to write quit command: %v", hltv.ID, hltv.Settings.Name, err)
-		return err
+
+		if closer, ok := hltv.Docker.Attach.Conn.(interface{ CloseWrite() error }); ok {
+            _ = closer.CloseWrite()
+        }
+        hltv.Docker.Attach.Close()
+        hltv.isRunning = false
+        return err
 	}
 
-	if closer, ok := hltv.Docker.Attach.Conn.(interface{ CloseWrite() error }); ok {
-		_ = closer.CloseWrite()
-	}
+	select {
+    case <-hltv.quitChan:
+        log.InfoLogger.Printf("HLTV (ID: %d, Name: %s) Demo archived, shutting down.", hltv.ID, hltv.Settings.Name)
+    case <-time.After(10 * time.Second):
+        log.WarningLogger.Printf("HLTV (ID: %d, Name: %s) Timeout waiting for demo completion, forcing close.", hltv.ID, hltv.Settings.Name)
+    }
 
-	hltv.Docker.Attach.Close()
-
-	return nil
+    if closer, ok := hltv.Docker.Attach.Conn.(interface{ CloseWrite() error }); ok {
+        _ = closer.CloseWrite()
+    }
+    hltv.Docker.Attach.Close()
+    hltv.isRunning = false
+    return nil
 }
 
 func (hltv *HLTV) WriteCommand(cmd string) error {
@@ -134,6 +157,85 @@ func (hltv *HLTV) WriteCommand(cmd string) error {
 	return err
 }
 
+func (hltv *HLTV) IsRunning() bool {
+    return hltv.isRunning
+}
+
+type LogBuffer struct {
+	lines []string
+	size  int
+	start int
+	count int
+	mu    sync.Mutex
+}
+
+func NewLogBuffer(size int) *LogBuffer {
+	return &LogBuffer{
+		lines: make([]string, size),
+		size:  size,
+	}
+}
+
+func (lb *LogBuffer) Add(line string) {
+	lb.mu.Lock()
+	defer lb.mu.Unlock()
+	if lb.count < lb.size {
+		lb.lines[lb.count] = line
+		lb.count++
+	} else {
+		lb.lines[lb.start] = line
+		lb.start = (lb.start + 1) % lb.size
+	}
+}
+
+func (lb *LogBuffer) Snapshot() []string {
+	lb.mu.Lock()
+	defer lb.mu.Unlock()
+	out := make([]string, lb.count)
+	if lb.count < lb.size {
+		copy(out, lb.lines[:lb.count])
+	} else {
+		for i := 0; i < lb.size; i++ {
+			idx := (lb.start + i) % lb.size
+			out[i] = lb.lines[idx]
+		}
+	}
+	return out
+}
+
+func (hltv *HLTV) broadcastLine(line string) {
+	if hltv.logBuffer != nil {
+		hltv.logBuffer.Add(line)
+	}
+	hltv.mu.Lock()
+	defer hltv.mu.Unlock()
+	for ch := range hltv.subscribers {
+		select {
+		case ch <- line:
+		default:
+		}
+	}
+}
+
+func (hltv *HLTV) Subscribe(ch chan string) {
+	hltv.mu.Lock()
+	defer hltv.mu.Unlock()
+	hltv.subscribers[ch] = struct{}{}
+}
+
+func (hltv *HLTV) Unsubscribe(ch chan string) {
+	hltv.mu.Lock()
+	defer hltv.mu.Unlock()
+	delete(hltv.subscribers, ch)
+	close(ch)
+}
+
+func (hltv *HLTV) GetLogSnapshot() []string {
+    if hltv.logBuffer == nil {
+        return nil
+    }
+    return hltv.logBuffer.Snapshot()
+}
 /*
 
 hltv_manager    | ***** FATAL ERROR *****

@@ -13,6 +13,7 @@ type Config struct {
 	HltvDocker     string
 	HltvRunnerFile string
 	HltvDemosDir   string
+	ApiToken       string
 }
 
 var data Config
@@ -26,6 +27,7 @@ func InitConfig() {
 		HltvDocker:     os.Getenv("HLTV_DOCKER"),
 		HltvRunnerFile: os.Getenv("HLTV_RUNNER_FILE"),
 		HltvDemosDir:   os.Getenv("HLT_DEMOS_DIR"),
+		ApiToken:       os.Getenv("API_TOKEN"),
 	}
 
 	// TODO: Debug
@@ -51,4 +53,8 @@ func HltvRunnerFile() string {
 
 func HltvDemosDir() string {
 	return data.HltvDemosDir
+}
+
+func ApiToken() string {
+    return data.ApiToken
 }

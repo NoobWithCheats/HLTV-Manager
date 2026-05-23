@@ -3,13 +3,14 @@
 <html lang="en">
 {{ template "head" }}
 <body>
-    <div class="container">
-        <div class="d-flex align-items-center justify-content-between mb-3">
+{{ template "navbar" }}
+<div class="container">
+    <div class="d-flex align-items-center justify-content-between mb-3">
         <a href="/" class="btn btn-info">← Назад</a>
         <h1 class="text-center flex-grow-1 mb-0">Demos for {{.Settings.Name}}</h1>
-        <div style="width: 90px;"></div> <!-- пустой блок, чтобы центр не смещался -->
+        <div style="width: 90px;"></div>
     </div>
-    <table class="table table-bordered table-striped table-hover">
+    <table class="table table-bordered table-striped table-hover mt-20">
         <thead>
             <tr class="info text-center">
                 <th class="text-center">Map</th>

@@ -1,0 +1,85 @@
+{{ define "dashboard" }}
+<!DOCTYPE html>
+<html>
+{{ template "head" }}
+<body>
+{{ template "navbar" }}
+<div class="container">
+    <h1 class="text-center mb-20">Управление HLTV</h1>
+
+    <div class="row mb-3">
+        <div class="col-xs-6 text-left">
+            <a href="/" class="btn btn-info">← На сайт</a>
+        </div>
+        <div class="col-xs-6 text-right">
+            <a href="/admin/change-password" class="btn btn-warning">Сменить пароль</a>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-hover mt-20">
+        <thead>
+            <tr>
+                <th>ID</th><th>Имя</th><th>Подключение</th><th>Порт</th><th>Статус</th><th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+        {{range .}}
+        <tr>
+            <td>{{.ID}}</td>
+            <td>{{.Settings.Name}}</td>
+            <td>{{.Settings.Connect}}</td>
+            <td>{{.Settings.Port}}</td>
+            <td>{{if .IsRunning}}🟢 Работает{{else}}🔴 Остановлен{{end}}</td>
+            <td>
+                <a href="/admin/hltv/terminal/{{.ID}}" target="_blank" class="btn btn-sm btn-info">Терминал</a>
+                <a href="/admin/hltv/edit/{{.ID}}" class="btn btn-sm btn-primary">Ред.</a>
+                {{if .IsRunning}}
+                <a href="/admin/hltv/stop/{{.ID}}" class="btn btn-sm btn-warning action-btn" data-action="stop">Стоп</a>
+                {{else}}
+                <a href="/admin/hltv/start/{{.ID}}" class="btn btn-sm btn-success action-btn" data-action="start">Старт</a>
+                {{end}}
+                <a href="/admin/hltv/delete/{{.ID}}" class="btn btn-sm btn-danger" onclick="return confirm('Удалить?')">Удалить</a>
+            </td>
+        </tr>
+        {{else}}
+        <tr><td colspan="6">Нет ни одного HLTV</td></tr>
+        {{end}}
+        </tbody>
+    </table>
+
+    <div class="row">
+        <div class="col-xs-12 text-right">
+            <a href="/admin/hltv/new" class="btn btn-success">Добавить HLTV</a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const url = this.getAttribute('href');
+        const action = this.dataset.action;
+        const originalText = this.innerText;
+        const loadingText = action === 'start' ? 'Запускается...' : 'Останавливается...';
+        this.innerText = loadingText;
+        this.classList.add('disabled');
+        this.style.pointerEvents = 'none';
+        this.style.opacity = '0.6';
+
+        fetch(url, { method: 'GET' })
+            .then(() => window.location.reload())
+            .catch(error => {
+                console.error(error);
+                this.innerText = originalText;
+                this.classList.remove('disabled');
+                this.style.pointerEvents = '';
+                this.style.opacity = '';
+                alert('Ошибка выполнения операции');
+            });
+    });
+});
+</script>
+</body>
+</html>
+{{ end }}

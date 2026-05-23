@@ -4,10 +4,13 @@ import (
 	log "HLTV-Manager/logger"
 	"archive/zip"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
+
 
 type Status int
 
@@ -58,6 +61,7 @@ func (hltv *HLTV) TerminalControl() {
 		}
 		line := string(buf[:n])
 		line = strings.TrimSpace(line)
+		hltv.broadcastLine(line)
 		hltv.ParseHltvOutLines(line)
 	}
 }
@@ -74,27 +78,56 @@ func (hltv *HLTV) ParseHltvOutLines(input string) {
 			log.InfoLogger.Printf("(HLTV %d) %s", hltv.ID, line)
 		}
 
-		// INFO: Нужно ли это запихивать куда-то?
+	
 		if patterns["completed"].MatchString(line) {
-			re := regexp.MustCompile(`^[^-]+ +([a-zA-Z0-9]+-\d{10}-.+)\.dem.$`)
+	
+			re := regexp.MustCompile(`^Completed demo (.+)\.dem\.?$`)
 			matches := re.FindStringSubmatch(line)
-
-			if matches == nil {
-				fmt.Errorf("incorrect file name format")
+			if matches == nil || len(matches) < 2 {
+				log.ErrorLogger.Printf("HLTV (ID: %d, Name: %s) Could not parse completed demo filename: %s", hltv.ID, hltv.Settings.Name, line)
+				continue
 			}
 
-			file := hltv.Settings.DemoDir + "/" + matches[0]
-			archive, err := os.Create(file + ".zip")
+			demoName := matches[1]
+			demFilePath := filepath.Join(hltv.Settings.DemoDir, demoName+".dem")
+			zipFilePath := filepath.Join(hltv.Settings.DemoDir, demoName+".zip")
 
-			if err == nil {
-				fmt.Errorf("inncorrect zip file")
+			demFile, err := os.Open(demFilePath)
+			if err != nil {
+				log.ErrorLogger.Printf("HLTV (ID: %d, Name: %s) Failed to open demo file %s: %v", hltv.ID, hltv.Settings.Name, demFilePath, err)
+				continue
+			}
+			defer demFile.Close()
+
+			zipFile, err := os.Create(zipFilePath)
+			if err != nil {
+				log.ErrorLogger.Printf("HLTV (ID: %d, Name: %s) Failed to create zip %s: %v", hltv.ID, hltv.Settings.Name, zipFilePath, err)
+				continue
+			}
+			defer zipFile.Close()
+
+			zipWriter := zip.NewWriter(zipFile)
+			defer zipWriter.Close()
+
+			writer, err := zipWriter.Create(demoName + ".dem")
+			if err != nil {
+				log.ErrorLogger.Printf("HLTV (ID: %d, Name: %s) Failed to create entry in zip: %v", hltv.ID, hltv.Settings.Name, err)
+				continue
+			}
+			if _, err := io.Copy(writer, demFile); err != nil {
+				log.ErrorLogger.Printf("HLTV (ID: %d, Name: %s) Failed to write demo to zip: %v", hltv.ID, hltv.Settings.Name, err)
+				continue
 			}
 
-			defer archive.Close()
+			log.InfoLogger.Printf("HLTV (ID: %d, Name: %s) Archived demo: %s", hltv.ID, hltv.Settings.Name, zipFilePath)
 
-			zipWriter := zip.NewWriter(archive)
-			zipWriter.Create(file + ".dem")
-			zipWriter.Close()
+			os.Remove(demFilePath)
+
+
+			if hltv.quitChan != nil {
+				close(hltv.quitChan)
+			}
+			continue
 		}
 
 		switch hltv.Parser.Status {
